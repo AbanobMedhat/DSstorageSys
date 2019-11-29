@@ -62,6 +62,14 @@ public class FileServer {
         }
         return session.cwd;
     }
+    public static boolean move(String filePath, String targetPath, UserSession session)
+    {
+        filePath = legalPath(filePath, session);
+        targetPath = legalPath(targetPath, session);
+         File file = new File(filePath);
+        File newFile = new File(targetPath);
+        return (!newFile.exists() && file.renameTo(newFile));
+    }
      private static boolean delete(File file)
     	throws IOException{
  

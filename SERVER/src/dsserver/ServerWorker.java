@@ -236,6 +236,17 @@ public class ServerWorker extends Thread {
 				writeLine("File does not exist or bad permissions.");
 			}
 		}
+                
+                else if (cmd.length > 0 && (cmd[0].equals("mv") || cmd[0].equals("rnm")))
+		{
+			if (FileServer.move(cmd[1], cmd[2], session)){
+				writeLine("OK");
+				execCommand("ls");
+			}
+			else{
+				writeLine("Target file already exists or bad permissions.");
+			}
+		}
 		else
 		{
 			writeLine("ERROR: Unrecognized command");
