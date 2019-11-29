@@ -5,6 +5,12 @@
  */
 package javaapplication1;
 
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
+import java.net.Socket;
+import java.util.regex.Pattern;
+import javax.swing.JOptionPane;
+
 /**
  *
  * @author PC
@@ -40,12 +46,17 @@ public class MainJFrame extends javax.swing.JFrame {
         jLabel1.setFont(new java.awt.Font("Tahoma", 0, 18)); // NOI18N
         jLabel1.setText("Welcome - Login");
 
-        jLabel2.setText("Username:");
+        jLabel2.setText("Email:");
 
         jLabel3.setText("Password:");
 
         jButton1.setText("Login");
         jButton1.setToolTipText("");
+        jButton1.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButton1ActionPerformed(evt);
+            }
+        });
 
         jLabel4.setForeground(new java.awt.Color(0, 102, 255));
         jLabel4.setText("No account? Click here to sign up");
@@ -72,12 +83,16 @@ public class MainJFrame extends javax.swing.JFrame {
                         .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
                             .addGap(7, 7, 7)
                             .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                .addComponent(jLabel2)
-                                .addComponent(jLabel3))
-                            .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                            .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                                .addComponent(jTextField1, javax.swing.GroupLayout.DEFAULT_SIZE, 160, Short.MAX_VALUE)
-                                .addComponent(jPasswordField1)))))
+                                .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+                                    .addComponent(jLabel3)
+                                    .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED))
+                                .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+                                    .addComponent(jLabel2)
+                                    .addGap(26, 26, 26)))
+                            .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                .addComponent(jTextField1, javax.swing.GroupLayout.PREFERRED_SIZE, 160, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addComponent(jPasswordField1, javax.swing.GroupLayout.PREFERRED_SIZE, 160, javax.swing.GroupLayout.PREFERRED_SIZE))
+                            .addGap(6, 6, 6))))
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
         layout.setVerticalGroup(
@@ -126,6 +141,84 @@ public class MainJFrame extends javax.swing.JFrame {
 
             switchContext(jLabel4.getText() == "No account? Click here to sign up");
     }//GEN-LAST:event_jLabel4MouseClicked
+
+    /**
+    * @param mode 0: login, 1: register
+    */
+    private boolean authenticate(SocketHelper sh, String email, String password, boolean mode)
+    {
+     try{
+         sh.writeLine(mode? "/r" : "/l");
+         if (sh.readLine().equals("1"))
+         {
+             sh.writeLine(email);
+             if (sh.readLine().equals("0"))
+             {
+                 GUI.msgBox(mode?"Invalid email supplied or already exists." : "The email entered does not exist.", "ERROR", JOptionPane.ERROR_MESSAGE);
+                 return false;
+             }
+             sh.writeLine(password);
+             if (sh.readLine().equals("0"))
+             {
+                 GUI.msgBox(mode?"Server error. Please try again later.":"Invalid password supplied.", "ERROR", JOptionPane.ERROR_MESSAGE); //Invalid password or server error storing session
+                 return false;
+             }
+             return true;
+         }
+         else
+         {
+             GUI.msgBox("Server is not ready for this operation yet. Please try again later.", "ERROR", JOptionPane.ERROR_MESSAGE);
+             return false;
+         }
+     }
+     catch (Exception ex)
+     {
+    
+     }
+     return false;
+    }
+    private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
+        
+        if (jButton1.getText().equals("Login"))
+        {
+        String regex = "^[\\w!#$%&'*+/=?`{|}~^-]+(?:\\.[\\w!#$%&'*+/=?`{|}~^-]+)*@(?:[a-zA-Z0-9-]+\\.)+[a-zA-Z]{2,6}$"; //TLD only
+        Pattern pattern = Pattern.compile(regex);
+        if (pattern.matcher(jTextField1.getText()).matches())
+        {
+            try{
+                SocketHelper sh = new SocketHelper(new Socket("localhost", 9991));
+                if (authenticate(sh, jTextField1.getText(), jPasswordField1.getText(), false))
+                {
+                    hide();
+                    new Dashboard(sh).show();
+                }
+                
+            }
+            catch (Exception ex){
+
+            }
+        }
+        else
+        {
+            GUI.msgBox("Invalid email supplied. Please enter a valid email address.", "ERROR",JOptionPane.ERROR_MESSAGE);
+        }
+        }
+        else
+        {
+                    try{
+                        SocketHelper sh = new SocketHelper(new Socket("localhost", 9991));
+                        if (authenticate(sh, jTextField1.getText(), jPasswordField1.getText(), true))
+                        {
+                            switchContext(false);
+                           GUI.msgBox("Successfully registered. Please login.", "INFORMATION", JOptionPane.INFORMATION_MESSAGE);
+                        }
+
+                    }
+                    catch (Exception ex){
+
+                    }
+        }
+    }//GEN-LAST:event_jButton1ActionPerformed
 
     /**
      * @param args the command line arguments

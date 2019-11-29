@@ -5,17 +5,36 @@
  */
 package dsserver;
 
+import java.net.ServerSocket;
+import java.net.Socket;
+
 /**
  *
  * @author PC
  */
 public class DSServer {
 
+    public static final String filesPath = "C:\\DSys\\";
     /**
      * @param args the command line arguments
      */
     public static void main(String[] args) {
-        // TODO code application logic here
+       try
+       {
+           Database.init();
+           ServerSocket serverSocket = new ServerSocket(9991);
+           System.out.println("Started server, listening on " + serverSocket.getInetAddress() + ":"+serverSocket.getLocalPort());
+           while (true){
+           Socket client = serverSocket.accept();
+           ServerWorker worker = new ServerWorker(client);
+           worker.start();
+           }
+       }
+       catch (Exception ex)
+       {
+           System.out.println(ex.getMessage());
+       }
+        
     }
     
 }
