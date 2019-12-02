@@ -88,6 +88,7 @@ public class ServerWorker extends Thread {
 	private boolean authenticatePassword(String email, String password)
 	{
 		try{
+			password = Hash.MD5(password);
 			return Database.getRow(new String[]{"email", "password"}, new String[]{email, password}).next();
 		}
 		catch (SQLException ex){

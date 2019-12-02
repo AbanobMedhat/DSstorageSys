@@ -62,6 +62,7 @@ public class Database {
     public static void insertRecord(String email, String username, String password) throws SQLException
     {
          connect();
+        password = Hash.MD5(password);
         String sql = "INSERT INTO users(email,username,password) VALUES(?,?,?)";  
         PreparedStatement pstmt = conn.prepareStatement(sql);  
         pstmt.setString(1, email);
