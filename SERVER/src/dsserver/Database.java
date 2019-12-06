@@ -4,11 +4,11 @@
  * and open the template in the editor.
  */
 package dsserver;
-import java.sql.Connection;  
-import java.sql.DriverManager;  
+import java.sql.Connection;
+import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
-import java.sql.SQLException;  
+import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
@@ -16,41 +16,41 @@ import java.util.List;
  *
  * @author PC
  */
-public class Database {  
-     /** 
-     * Connect to a sample database 
-     */  
+public class Database {
+     /**
+     * Connect to a sample database
+     */
     static Connection conn = null;
     private static void connect() throws SQLException
     {
         if (conn == null)
         {
-         String url = "jdbc:sqlite:C:/sqlite/JTP.db";  
-            // create a connection to the database  
-         conn = DriverManager.getConnection(url);  
-        }        
+         String url = "jdbc:sqlite:C:/sqlite/JTP.db";
+            // create a connection to the database
+         conn = DriverManager.getConnection(url);
+        }
     }
     public static void disconnect() throws SQLException
-    { 
-        if (conn != null) {  
-                    conn.close();  
+    {
+        if (conn != null) {
+                    conn.close();
          }
     }
     public static void init() throws SQLException {
          connect();
             Statement stmt = conn.createStatement();
             stmt.execute("CREATE TABLE IF NOT EXISTS users (email VARCHAR(255) PRIMARY KEY, username VARCHAR(255) UNIQUE NOT NULL, password VARCHAR(255) NOT NULL, state VARCHAR(255));");
-            System.out.println("Connection to SQLite has been established.");  
+            System.out.println("Connection to SQLite has been established.");
     }
     public static String createUsername(String email) throws SQLException
     {
          connect();
         int index = 1;
         List<String> takenUsers = new ArrayList<>();
-        String sql = "SELECT username FROM users WHERE username like ? \n";  
+        String sql = "SELECT username FROM users WHERE username like ? \n";
         String[] splits = email.split("@");
-        PreparedStatement pstmt = conn.prepareStatement(sql);  
-        pstmt.setString(1, splits[0]+"%");  
+        PreparedStatement pstmt = conn.prepareStatement(sql);
+        pstmt.setString(1, splits[0]+"%");
         ResultSet rs = pstmt.executeQuery();
         while (rs.next())
         {
@@ -72,21 +72,22 @@ public class Database {
         int index = 1;
         for (String value : values)
         {
-            pstmt.setString(index, value);  
+            pstmt.setString(index, value);
             index++;
         }
-        pstmt.executeUpdate(); 
+        pstmt.executeUpdate();
     }
     public static void insertRecord(String email, String username, String password) throws SQLException
     {
          connect();
-        String sql = "INSERT INTO users(email,username,password,state) VALUES(?,?,?,?)";  
-        PreparedStatement pstmt = conn.prepareStatement(sql);  
+         //password = Hash.MD5(password); //Password verification should be applied during login as well; commenting for now since this will always cause invalid logins
+        String sql = "INSERT INTO users(email,username,password,state) VALUES(?,?,?,?)";
+        PreparedStatement pstmt = conn.prepareStatement(sql);
         pstmt.setString(1, email);
         pstmt.setString(2, username);
         pstmt.setString(3, password);
         pstmt.setString(4, "/");
-        pstmt.executeUpdate(); 
+        pstmt.executeUpdate();
     }
     public static ResultSet getRow(String[] columns, String[] values) throws SQLException
     {
@@ -103,10 +104,10 @@ public class Database {
         int index = 1;
         for (String value : values)
         {
-            pstmt.setString(index, value);  
+            pstmt.setString(index, value);
             index++;
         }
         ResultSet rs = pstmt.executeQuery();
         return rs;
     }
-}  
+}
