@@ -6,10 +6,10 @@
 package dsserver;
 
 import java.io.File;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  *
@@ -18,15 +18,16 @@ import java.sql.SQLException;
 public class UserSession {
     String email;
     String username;
-    String cwd;
+    String cwd = null;
     public UserSession(String email) throws SQLException{
         this.email = email;
         ResultSet rs = Database.getRow(new String[]{"email"}, new String[]{this.email});
         while (rs.next())
         {
             this.username = rs.getString("username");
+            cwd=  rs.getString("state");
         }
-        cwd=  "/";
+        if (cwd == null) changeCwd("/");
         if (!new File(DSServer.filesPath + username).exists())
         {
             FileServer.mkdir("", this);
@@ -37,6 +38,11 @@ public class UserSession {
         if (_cwd.length() > 0)
         {
             cwd = _cwd;
+            try {
+                Database.updateRow("UPDATE users SET state=?", new String[]{"email"}, new String[]{_cwd, email});
+            } catch (SQLException ex) {
+                Logger.getLogger(UserSession.class.getName()).log(Level.SEVERE, null, ex);
+            }
         }
         return cwd;
     }

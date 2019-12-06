@@ -7,8 +7,11 @@ package dsserver;
 
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
+import java.io.IOException;
 import java.net.Socket;
+import java.nio.file.Paths;
 import java.sql.SQLException;
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Pattern;
@@ -96,6 +99,10 @@ public class ServerWorker extends Thread {
 			return false;
 		}
 	}
+        private String filterCommand(String input, String command)
+        {
+            return input.replaceAll("^"+command+" ", "");
+        }
 	private boolean execCommand(String input)
 	{
 		String[] cmd = {};
@@ -167,32 +174,41 @@ public class ServerWorker extends Thread {
 			{
 				writeLine("0");
 			}
+                        
 		}
 		else if ("/e".equals(input))
 		{
-			writeLine(session.getEmail());
+			writeLine(session != null? session.getEmail() : "0");
 		}
+                else if ("/h".equals(input))
+                {
+                    writeLine("1");
+                }
 		else if ("/u".equals(input))
 		{
-			writeLine(session.getUsername());
+			writeLine(session != null? session.getUsername(): "0");
 		}
 		else if ("pwd".equals(input))
 		{
-			writeLine(session.getCwd());
+			writeLine(session != null? session.getCwd(): "0");
 		}
 		else if ("ls".equals(input) || input.startsWith("ls"))
 		{
-			String[] files = FileServer.ls("", session);
+                    if (session != null)
+                    {
+			List<String> files = FileServer.ls("", session);
 			writeLine("/#list");
 			for (String file : files)
 			{
 				writeLine(FileServer.filterPath(file, session));
 			}
 			writeLine("#list/");
+                    }
 		}
 		else if (cmd.length > 0 && cmd[0].equals("cd"))
-		{
-			String target = input.replaceAll("^cd ", "");
+		{if (session != null)
+                    {
+			String target = filterCommand(input, "cd");
 			String _cwd = session.getCwd();
 			session.changeCwd(target);
 			if (!_cwd.equals(session.getCwd())){
@@ -202,10 +218,12 @@ public class ServerWorker extends Thread {
 			else{
 				writeLine("Directory does not exist or bad permissions.");
 			}
+                    }
 		}
 		else if (cmd.length > 0 && cmd[0].equals("mkdir"))
-		{
-			String target = input.replaceAll("^mkdir ", "");
+		{if (session != null)
+                    {
+			String target = filterCommand(input, "mkdir");
 			if (FileServer.mkdir(target, session)){
 				writeLine("OK");
 				execCommand("ls");
@@ -213,10 +231,13 @@ public class ServerWorker extends Thread {
 			else{
 				writeLine("Directory already exists or bad permissions.");
 			}
+                    }
 		}
                 else if (cmd.length > 0 && cmd[0].equals("rmdir"))
 		{
-			String target = input.replaceAll("^rmdir ", "");
+                    if (session != null)
+                    {
+			String target = filterCommand(input, "rmdir");
 			if (FileServer.rmdir(target, session)){
 				writeLine("OK");
 				execCommand("ls");
@@ -224,10 +245,13 @@ public class ServerWorker extends Thread {
 			else{
 				writeLine("Directory does not exist or bad permissions.");
 			}
+                    }
 		}
                 else if (cmd.length > 0 && cmd[0].equals("rm"))
 		{
-			String target = input.replaceAll("^rm ", "");
+                    if (session != null)
+                    {
+			String target = filterCommand(input, "rm");
 			if (FileServer.rm(target, session)){
 				writeLine("OK");
 				execCommand("ls");
@@ -235,10 +259,13 @@ public class ServerWorker extends Thread {
 			else{
 				writeLine("File does not exist or bad permissions.");
 			}
+                    }
 		}
                 
                 else if (cmd.length > 0 && (cmd[0].equals("mv") || cmd[0].equals("rnm")))
 		{
+                    if (session != null)
+                    {
 			if (FileServer.move(cmd[1], cmd[2], session)){
 				writeLine("OK");
 				execCommand("ls");
@@ -246,7 +273,55 @@ public class ServerWorker extends Thread {
 			else{
 				writeLine("Target file already exists or bad permissions.");
 			}
+                    }
 		}
+                
+                else if (cmd.length > 0 && (cmd[0].equals("download")))
+		{
+                    if (session != null)
+                    {
+			String target = filterCommand(input, "download");
+			if (FileServer.exists(target, session)){
+                            try {
+                                writeLine("/#download");
+                                writeLine(Paths.get(target).getFileName().toString());
+                                FileServer.passFile(target, session, this.client);
+                               
+                            } catch (IOException ex) {
+                                writeLine("ERROR: An error occurred while trying to process your command. Please try again later.");
+                            }
+			}
+			else{
+				writeLine("Target file does not exist or bad permissions.");
+                                execCommand("ls");
+			}
+                    }
+                }
+                
+                else if (cmd.length > 0 && (cmd[0].equals("upload")))
+		{
+                    if (session != null)
+                    {
+			String target = filterCommand(input, "upload");
+                        boolean _continue = true;
+			if (FileServer.exists(target, session)){
+                            writeLine("WARNING: File already exists. Respond with Y to overwrite. Type N or anything else to abort.");
+                            if (!readLine().equals("Y"))
+                            {
+                                _continue = false;
+                            }
+                        }
+                        if (_continue)
+                        {
+                            try {
+                                writeLine("#upload");
+                                FileServer.storeFile(target, session, iStream);                                
+                            } catch (IOException ex) {
+                                writeLine("ERROR: An error occurred while trying to process your command. Please try again later.");
+                            }
+                        }
+                    }
+                }
 		else
 		{
 			writeLine("ERROR: Unrecognized command");
@@ -260,9 +335,14 @@ public class ServerWorker extends Thread {
 	}
 	catch (Exception ex) {}*/
 		System.out.println("Client connected: " + client.getInetAddress());
-		while ((input = readLine()).length() > 0)
+		while ((input = readLine()) != null && input.length() > 0)
 		{
 			if (!execCommand(input)) break;
 		}
+            try {
+                client.close();
+            } catch (IOException ex) {
+                Logger.getLogger(ServerWorker.class.getName()).log(Level.SEVERE, null, ex);
+            }
 	}
 }

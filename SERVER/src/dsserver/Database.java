@@ -39,7 +39,7 @@ public class Database {
     public static void init() throws SQLException {
          connect();
             Statement stmt = conn.createStatement();
-            stmt.execute("CREATE TABLE IF NOT EXISTS users (email VARCHAR(255) PRIMARY KEY, username VARCHAR(255) UNIQUE NOT NULL, password VARCHAR(255) NOT NULL);");
+            stmt.execute("CREATE TABLE IF NOT EXISTS users (email VARCHAR(255) PRIMARY KEY, username VARCHAR(255) UNIQUE NOT NULL, password VARCHAR(255) NOT NULL, state VARCHAR(255));");
             System.out.println("Connection to SQLite has been established.");  
     }
     public static String createUsername(String email) throws SQLException
@@ -59,14 +59,33 @@ public class Database {
         while (takenUsers.contains(splits[0]+""+(index <= 1? "" : index))) index++;
         return splits[0]+""+(index <= 1? "" : index);
     }
+    public static void updateRow(String sql, String[] columns, String[] values) throws SQLException
+    {
+         connect();
+        if (columns.length > 0) sql += " WHERE ";
+        for (String column : columns)
+        {
+            sql += " "+ column +"=? AND";
+        }
+        sql = sql.replaceAll("AND$", "");
+        PreparedStatement pstmt = conn.prepareStatement(sql);
+        int index = 1;
+        for (String value : values)
+        {
+            pstmt.setString(index, value);  
+            index++;
+        }
+        pstmt.executeUpdate(); 
+    }
     public static void insertRecord(String email, String username, String password) throws SQLException
     {
          connect();
-        String sql = "INSERT INTO users(email,username,password) VALUES(?,?,?)";  
+        String sql = "INSERT INTO users(email,username,password,state) VALUES(?,?,?,?)";  
         PreparedStatement pstmt = conn.prepareStatement(sql);  
         pstmt.setString(1, email);
         pstmt.setString(2, username);
         pstmt.setString(3, password);
+        pstmt.setString(4, "/");
         pstmt.executeUpdate(); 
     }
     public static ResultSet getRow(String[] columns, String[] values) throws SQLException

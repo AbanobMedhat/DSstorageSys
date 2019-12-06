@@ -147,35 +147,7 @@ public class MainJFrame extends javax.swing.JFrame {
     */
     private boolean authenticate(SocketHelper sh, String email, String password, boolean mode)
     {
-     try{
-         sh.writeLine(mode? "/r" : "/l");
-         if (sh.readLine().equals("1"))
-         {
-             sh.writeLine(email);
-             if (sh.readLine().equals("0"))
-             {
-                 GUI.msgBox(mode?"Invalid email supplied or already exists." : "The email entered does not exist.", "ERROR", JOptionPane.ERROR_MESSAGE);
-                 return false;
-             }
-             sh.writeLine(password);
-             if (sh.readLine().equals("0"))
-             {
-                 GUI.msgBox(mode?"Server error. Please try again later.":"Invalid password supplied.", "ERROR", JOptionPane.ERROR_MESSAGE); //Invalid password or server error storing session
-                 return false;
-             }
-             return true;
-         }
-         else
-         {
-             GUI.msgBox("Server is not ready for this operation yet. Please try again later.", "ERROR", JOptionPane.ERROR_MESSAGE);
-             return false;
-         }
-     }
-     catch (Exception ex)
-     {
-    
-     }
-     return false;
+        return sh.authenticate(email,password,mode);
     }
     private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
         

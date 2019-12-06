@@ -5,8 +5,17 @@
  */
 package dsserver;
 
+import java.io.BufferedInputStream;
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.net.Socket;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Scanner;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -33,6 +42,47 @@ public class FileServer {
         }
         return "";
 }
+    public static boolean exists(String filePath, UserSession session)
+    {
+        String canonicalPath = legalPath(filePath, session);
+        return new File(canonicalPath).exists();
+    }
+    public static void passFile(String filePath, UserSession session, Socket client) throws IOException{
+        String canonicalPath = legalPath(filePath, session);
+        DataOutputStream os = new DataOutputStream(client.getOutputStream());
+        if (exists(filePath, session))
+        {
+            BufferedInputStream in = new BufferedInputStream(new FileInputStream(canonicalPath));
+            byte[] ioBuf = new byte[1];       
+            int bytesRead;
+            while (in.read(ioBuf) != -1){
+               os.write(ioBuf);
+            }
+            client.close(); //terminate the connection: the client will resume later
+        }
+    }
+    
+    public static void storeFile(String filePath, UserSession session, DataInputStream is) throws IOException{
+        String canonicalPath = legalPath(filePath, session);
+        
+            FileOutputStream  stream = new FileOutputStream(canonicalPath);
+            byte[] ioBuf = new byte[1]; 
+                                             int bytesRead;
+                                                while ((bytesRead = is.read(ioBuf)) != -1)
+                                                {
+                                                    stream.write(ioBuf);
+                                                    
+                                                }
+                                                 try {
+                                                stream.flush();
+                                                stream.close();
+                                                
+                                                } catch (IOException ex) {
+                                                    
+                                                }
+                                                
+
+    }
     public static boolean mkdir(String filePath, UserSession session)
     {
         String canonicalPath = legalPath(filePath, session);
@@ -40,12 +90,26 @@ public class FileServer {
            return mkdir(canonicalPath);
         else return false;
     }
-    public static String[] ls(String filePath, UserSession session)
+    public static List<String> ls(String filePath, UserSession session)
     {
         String canonicalPath = legalPath(filePath, session);
+        List<String> items = new ArrayList<>();
         if (canonicalPath.length() > 0)
-            return new File(canonicalPath).list();
-        else return new String[]{};
+        {
+            String[] files = new File(canonicalPath).list();
+            for (String file : files)
+            {
+                if (new File(canonicalPath + "\\" +file).isDirectory())
+                {
+                    items.add("[D] " + file);
+                }
+                else
+                {
+                    items.add("[F] " + file);
+                }
+            }
+        }
+        return items;
     }
     public static String filterPath(String path, UserSession session)
     {

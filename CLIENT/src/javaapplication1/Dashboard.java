@@ -6,8 +6,21 @@
 package javaapplication1;
 
 import java.awt.Component;
+import java.io.BufferedInputStream;
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.net.Socket;
+import java.util.Base64;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.swing.DefaultListModel;
+import javax.swing.JFileChooser;
+import javax.swing.JOptionPane;
 import javax.swing.text.DefaultCaret;
 import static javax.swing.text.DefaultCaret.ALWAYS_UPDATE;
 
@@ -46,6 +59,9 @@ public class Dashboard extends javax.swing.JFrame {
         jLabel3 = new javax.swing.JLabel();
         jButton2 = new javax.swing.JButton();
         jButton3 = new javax.swing.JButton();
+        jLabel4 = new javax.swing.JLabel();
+        jTextField1 = new javax.swing.JTextField();
+        jButton4 = new javax.swing.JButton();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         addWindowListener(new java.awt.event.WindowAdapter() {
@@ -97,6 +113,15 @@ public class Dashboard extends javax.swing.JFrame {
             }
         });
 
+        jLabel4.setText("Store downloaded files at:");
+
+        jButton4.setText("...");
+        jButton4.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButton4ActionPerformed(evt);
+            }
+        });
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
@@ -105,25 +130,32 @@ public class Dashboard extends javax.swing.JFrame {
                 .addContainerGap()
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(layout.createSequentialGroup()
-                        .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 130, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(jScrollPane2))
-                    .addGroup(layout.createSequentialGroup()
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addComponent(jLabel2)
                             .addComponent(jLabel3))
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                         .addComponent(jButton2))
                     .addGroup(layout.createSequentialGroup()
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                        .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 130, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(jScrollPane2))
+                    .addComponent(jButton3)
+                    .addGroup(layout.createSequentialGroup()
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
+                            .addGroup(javax.swing.GroupLayout.Alignment.LEADING, layout.createSequentialGroup()
+                                .addComponent(jLabel4)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(jTextField1))
                             .addGroup(layout.createSequentialGroup()
                                 .addComponent(jLabel1)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(jComboBox1, javax.swing.GroupLayout.PREFERRED_SIZE, 248, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(jButton1))
-                            .addComponent(jButton3))
-                        .addGap(0, 0, Short.MAX_VALUE)))
+                                .addComponent(jComboBox1, javax.swing.GroupLayout.PREFERRED_SIZE, 248, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addGroup(layout.createSequentialGroup()
+                                .addComponent(jButton1)
+                                .addGap(0, 6, Short.MAX_VALUE))
+                            .addComponent(jButton4, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))))
                 .addContainerGap())
         );
         layout.setVerticalGroup(
@@ -136,10 +168,15 @@ public class Dashboard extends javax.swing.JFrame {
                     .addComponent(jLabel2)
                     .addComponent(jButton2))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
                     .addComponent(jScrollPane2)
-                    .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 179, Short.MAX_VALUE))
+                    .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 161, Short.MAX_VALUE))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(jLabel4)
+                    .addComponent(jTextField1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(jButton4))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                 .addComponent(jButton3)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
@@ -173,9 +210,11 @@ caret.setUpdatePolicy(ALWAYS_UPDATE);
 			getPwd();
 			jTextArea1.setEditable(false);
 			Thread thread = new Thread(() -> {
+                            while (true)
+                            {
 				String input;
 				boolean _listUpdate = false;
-				while ((input = sh.readLine()).length() > 0)
+				while ((input = sh.readLine()) != null && input.length() > 0)
 				{
 					if (_listUpdate)
 					{
@@ -192,6 +231,14 @@ caret.setUpdatePolicy(ALWAYS_UPDATE);
 						
 						
 					}
+                                        else if (input.equals("#upload"))
+                                        {
+                                            try {
+                                                passFile(targetUpload, sh);
+                                            } catch (IOException ex) {
+                                                appendLine("[ERROR] An error occurred during file transmission. The uploaded file might be corrupt.");
+                                            }
+                                        }
 					else if (input.startsWith("#cwd:")) {
 						updateCwd(input.replaceAll("^#cwd:", ""));
 					}
@@ -202,26 +249,110 @@ caret.setUpdatePolicy(ALWAYS_UPDATE);
 						_listUpdate = true;
 						
 					}
+                                        else if (input.equals("/#download"))
+                                        {
+                                            FileOutputStream stream = null;
+                                            String file_name = "";
+                                            if (!checkStoreFolder())
+                                            {
+                                                GUI.msgBox("The supplied storage directory does not exist. No files were saved.", "ERROR", JOptionPane.ERROR_MESSAGE);
+                                            }
+                                            else{
+                                             file_name = getStore() + "\\"+sh.readLine();
+                                            try {
+                                                 stream = new FileOutputStream(file_name);
+                                            } catch (IOException ex) {
+                                                Logger.getLogger(Dashboard.class.getName()).log(Level.SEVERE, null, ex);
+                                            }
+                                            }
+                                            try {
+                                            DataInputStream is = sh.getInputStream();
+                                             byte[] ioBuf = new byte[1]; 
+                                             int bytesRead;
+                                                while ((bytesRead = is.read(ioBuf)) != -1)
+                                                {
+                                                    if (stream != null)
+                                                    {
+                                                        stream.write(ioBuf);
+                                                    }
+                                                }
+                                            } catch (IOException ex) {
+                                                 appendLine("$ An error occurred during transmission; the file might be corrupt.");
+                                                Logger.getLogger(Dashboard.class.getName()).log(Level.SEVERE, null, ex);
+                                            }
+                                            if (stream != null) { try {
+                                                stream.flush();
+                                                stream.close();
+                                                appendLine("[INFO] File downloaded at '"+file_name+"'");
+                                                
+                                                } catch (IOException ex) {
+                                                    Logger.getLogger(Dashboard.class.getName()).log(Level.SEVERE, null, ex);
+                                                     appendLine("[ERROR] An error occurred during saving the file. Ensure you have permissions and try again.");
+                                                }
+ }
+                                        }
 					else
 					{
-						jTextArea1.append(input+"\n");
+						appendLine(input);
 					}
 					
 				}
+                                try {
+                                    Thread.sleep(1000); //wait for reconnect
+                                } catch (InterruptedException ex) {
+                                    Logger.getLogger(Dashboard.class.getName()).log(Level.SEVERE, null, ex);
+                                }
+                            }
 			});
 			thread.start();
                         refreshCwd();
                 
 		}//GEN-LAST:event_formWindowOpened
-		private void sendCommand(String command)
+		private String getStore()
+                {
+                    return jTextField1.getText();
+                }
+                private void appendLine(String text)
+                {
+                    jTextArea1.append(text+"\n");
+                }
+                
+    private void passFile(String filePath, SocketHelper sh) throws IOException{
+        DataOutputStream os = sh.getOutputStream();
+        File target = new File(filePath);
+        if (target.exists())
+        {
+            BufferedInputStream in = new BufferedInputStream(new FileInputStream(target));
+            byte[] ioBuf = new byte[1];       
+            int bytesRead;
+            while (in.read(ioBuf) != -1){
+               os.write(ioBuf);
+            }
+           sh.client.close();
+           sendCommand("ls");
+        }
+    }
+    String targetUpload = "";
+                private void sendCommand(String command)
 		{
-			jTextArea1.append("$ " + command + "\n");
+                   
+                    if (command.startsWith("upload "))
+                    {
+                        targetUpload = fileChooser(false);
+                    }
+                    appendLine("$ " + command);
 			sh.writeLine(command);
-		}                private void refreshCwd()
+		}     
+                private void refreshCwd()
                 {
                     sendCommand("ls");
                 
                 }
+                
+        private String filterCommand(String input, String command)
+        {
+            return input.replaceAll("^"+command+" ", "");
+        }
 		private void jButton3ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton3ActionPerformed
 			refreshCwd();
 		}//GEN-LAST:event_jButton3ActionPerformed
@@ -233,11 +364,47 @@ caret.setUpdatePolicy(ALWAYS_UPDATE);
     private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
         sendCommand(jComboBox1.getSelectedItem().toString());
     }//GEN-LAST:event_jButton1ActionPerformed
-
+    private String filterItem(String item)
+    {
+        return item.replaceAll("^\\[(F|D)\\] ", "");
+    }
     private void jList1MouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jList1MouseClicked
         if (jList1.getSelectedIndex() >= 0)
-        sendCommand("cd " + model.getElementAt(jList1.getSelectedIndex()));
+        {
+            String item = model.getElementAt(jList1.getSelectedIndex());
+            String command = "cd";
+            if (item.startsWith("[F]")) command = "download";
+            sendCommand(command + " " +filterItem(item));
+        }
     }//GEN-LAST:event_jList1MouseClicked
+    private boolean checkStoreFolder()
+    {
+        File _file = new File(getStore());
+        return (_file.exists());
+    }
+    private String fileChooser(boolean folderOnly)
+    {
+        JFileChooser fileChooser = new JFileChooser();
+        if (folderOnly)
+            fileChooser.setFileSelectionMode( JFileChooser.DIRECTORIES_ONLY);
+int result = fileChooser.showOpenDialog(this);
+
+if (result == JFileChooser.APPROVE_OPTION) {
+    File _file = fileChooser.getSelectedFile();
+        if(_file.exists())
+        {
+            try {
+                return _file.getCanonicalPath();
+            } catch (IOException ex) {
+                Logger.getLogger(Dashboard.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        }
+}
+return "";
+    }
+    private void jButton4ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton4ActionPerformed
+jTextField1.setText(fileChooser(true));
+    }//GEN-LAST:event_jButton4ActionPerformed
 
 		/**
 	* @param args the command line arguments
@@ -277,13 +444,16 @@ caret.setUpdatePolicy(ALWAYS_UPDATE);
     private javax.swing.JButton jButton1;
     private javax.swing.JButton jButton2;
     private javax.swing.JButton jButton3;
+    private javax.swing.JButton jButton4;
     private javax.swing.JComboBox<String> jComboBox1;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel3;
+    private javax.swing.JLabel jLabel4;
     private javax.swing.JList<String> jList1;
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JScrollPane jScrollPane2;
     private javax.swing.JTextArea jTextArea1;
+    private javax.swing.JTextField jTextField1;
     // End of variables declaration//GEN-END:variables
 	}
