@@ -6,12 +6,15 @@
 package dsserver;
 
 import java.io.BufferedInputStream;
+import java.io.BufferedReader;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.OutputStream;
 import java.net.Socket;
 import java.util.ArrayList;
 import java.util.List;
@@ -33,6 +36,7 @@ public class FileServer {
     {
         try {
             String canonicalPath = new File(DSServer.filesPath + session.getUsername() + "\\" + (filePath.startsWith("/")? filePath : session.getCwd() + "\\" + filePath)).getCanonicalPath().toString();
+           System.out.println(canonicalPath);
             if (canonicalPath.endsWith(DSServer.filesPath + session.getUsername()) || canonicalPath.startsWith(DSServer.filesPath + session.getUsername() + "\\"))
             {
                 return canonicalPath;
@@ -42,6 +46,33 @@ public class FileServer {
         }
         return "";
 }
+    public static boolean copy(String filename, String destination, UserSession session, DataOutputStream os)
+    {
+         try {
+                if (exists(filename, session) )
+                {
+                    String command = "";
+                    filename = legalPath(filename, session);
+                    destination = legalPath(destination, session);
+                    if (new File(filename).isDirectory()) { command = "xcopy"; destination += "\\*";} else { command = "copy"; }
+                 String[] cmd = {"C:\\Windows\\System32\\cmd.exe", "/c", command, filename,destination, "/Y"};
+                Process p = Runtime.getRuntime().exec(cmd);
+                 try (BufferedReader input = new BufferedReader(new InputStreamReader(p.getInputStream()))) {
+                     String temp = "";
+                     String _temp = "";
+                     while ((temp = input.readLine()) != null) _temp = temp;
+                     
+                         os.writeBytes(_temp + "\n"); //Output last line only
+                         
+                         input.close();
+                 }
+                return true;
+                }
+        } catch (Exception ex) {
+            Logger.getLogger(FileServer.class.getName()).log(Level.SEVERE, null, ex);
+        }
+         return false;
+    }
     public static boolean exists(String filePath, UserSession session)
     {
         String canonicalPath = legalPath(filePath, session);
@@ -58,6 +89,7 @@ public class FileServer {
             while (in.read(ioBuf) != -1){
                os.write(ioBuf);
             }
+            in.close();
             client.close(); //terminate the connection: the client will resume later
         }
     }
@@ -74,11 +106,10 @@ public class FileServer {
                                                     
                                                 }
                                                  try {
-                                                stream.flush();
                                                 stream.close();
-                                                
                                                 } catch (IOException ex) {
                                                     
+            Logger.getLogger(FileServer.class.getName()).log(Level.SEVERE, null, ex);
                                                 }
                                                 
 
@@ -132,7 +163,7 @@ public class FileServer {
         targetPath = legalPath(targetPath, session);
          File file = new File(filePath);
         File newFile = new File(targetPath);
-        return (!newFile.exists() && file.renameTo(newFile));
+        return (file.renameTo(newFile));
     }
      private static boolean delete(File file)
     	throws IOException{
@@ -142,6 +173,7 @@ public class FileServer {
     		//directory is empty, then delete it
     		if(file.list().length==0){
     			
+                    System.out.println("Delete file 1");
     		   return file.delete();
     		   
     			
@@ -160,6 +192,8 @@ public class FileServer {
         		
         	   //check the directory again, if empty then delete it
         	   if(file.list().length==0){
+                    System.out.println("Delete file 2");
+                       
            	     return file.delete();
         	   }
                    return false;
@@ -168,6 +202,7 @@ public class FileServer {
     	}
         else
         {
+                    System.out.println("Delete file 3 : " + file.getCanonicalPath());
             return file.delete();
         }
     }
@@ -189,8 +224,11 @@ public class FileServer {
             String canonicalPath = legalPath(filePath, session);
             File file = new File(canonicalPath);
             if (canonicalPath.length() > 0 && file.exists() && file.isDirectory())
+            {
+                System.out.println("OK");
                 return delete(file);
-        } catch (IOException ex) {
+            }
+            } catch (IOException ex) {
             Logger.getLogger(FileServer.class.getName()).log(Level.SEVERE, null, ex);
         }
         return false;

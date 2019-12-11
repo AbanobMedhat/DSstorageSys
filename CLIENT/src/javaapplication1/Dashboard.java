@@ -233,6 +233,7 @@ caret.setUpdatePolicy(ALWAYS_UPDATE);
 					}
                                         else if (input.equals("#upload"))
                                         {
+                                          
                                             try {
                                                 passFile(targetUpload, sh);
                                             } catch (IOException ex) {
@@ -340,6 +341,9 @@ caret.setUpdatePolicy(ALWAYS_UPDATE);
                     {
                         targetUpload = fileChooser(false);
                     }
+                    if (command.startsWith("upload ") && targetUpload.length() == 0) return;
+                            
+                        
                     appendLine("$ " + command);
 			sh.writeLine(command);
 		}     

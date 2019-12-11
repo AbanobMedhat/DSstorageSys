@@ -206,7 +206,7 @@ public class ServerWorker extends Thread {
 			writeLine("#list/");
                     }
 		}
-		else if (cmd.length > 0 && cmd[0].equals("cd"))
+		else if (cmd.length > 1 && cmd[0].equals("cd"))
 		{if (session != null)
                     {
 			String target = filterCommand(input, "cd");
@@ -217,11 +217,11 @@ public class ServerWorker extends Thread {
 				execCommand("ls");
 			}
 			else{
-				writeLine("Directory does not exist or bad permissions.");
+				writeLine("Directory does not exist, bad permissions or already here.");
 			}
                     }
 		}
-		else if (cmd.length > 0 && cmd[0].equals("mkdir"))
+		else if (cmd.length > 1 && cmd[0].equals("mkdir"))
 		{if (session != null)
                     {
 			String target = filterCommand(input, "mkdir");
@@ -234,7 +234,7 @@ public class ServerWorker extends Thread {
 			}
                     }
 		}
-                else if (cmd.length > 0 && cmd[0].equals("rmdir"))
+                else if (cmd.length > 1 && cmd[0].equals("rmdir"))
 		{
                     if (session != null)
                     {
@@ -248,7 +248,7 @@ public class ServerWorker extends Thread {
 			}
                     }
 		}
-                else if (cmd.length > 0 && cmd[0].equals("rm"))
+                else if (cmd.length > 1 && cmd[0].equals("rm"))
 		{
                     if (session != null)
                     {
@@ -263,7 +263,7 @@ public class ServerWorker extends Thread {
                     }
 		}
                 
-                else if (cmd.length > 0 && (cmd[0].equals("mv") || cmd[0].equals("rnm")))
+                else if (cmd.length > 2 && (cmd[0].equals("mv") || cmd[0].equals("rnm")))
 		{
                     if (session != null)
                     {
@@ -272,12 +272,26 @@ public class ServerWorker extends Thread {
 				execCommand("ls");
 			}
 			else{
-				writeLine("Target file already exists or bad permissions.");
+				writeLine("File does not exist or bad permissions.");
 			}
                     }
 		}
                 
-                else if (cmd.length > 0 && (cmd[0].equals("download")))
+                else if (cmd.length > 2 && (cmd[0].equals("cp") || cmd[0].equals("copy")))
+		{
+                    if (session != null)
+                    {
+			if (FileServer.copy(cmd[1], cmd[2], session, oStream)){
+				writeLine("OK");
+				execCommand("ls");
+			}
+			else{
+				writeLine("File does not exist or bad permissions.");
+			}
+                    }
+		}
+                
+                else if (cmd.length > 1 && (cmd[0].equals("download")))
 		{
                     if (session != null)
                     {
@@ -299,24 +313,21 @@ public class ServerWorker extends Thread {
                     }
                 }
                 
-                else if (cmd.length > 0 && (cmd[0].equals("upload")))
+                else if (cmd.length > 1 && (cmd[0].equals("upload")))
 		{
                     if (session != null)
                     {
 			String target = filterCommand(input, "upload");
                         boolean _continue = true;
 			if (FileServer.exists(target, session)){
-                            writeLine("WARNING: File already exists. Respond with Y to overwrite. Type N or anything else to abort.");
-                            if (!readLine().equals("Y"))
-                            {
-                                _continue = false;
-                            }
+                            writeLine("WARNING: File already exists. Please remove the file first to proceed. Aborted.");
+                            _continue = false;
                         }
                         if (_continue)
                         {
                             try {
                                 writeLine("#upload");
-                                FileServer.storeFile(target, session, iStream);                                
+                                FileServer.storeFile(target, session, iStream);  
                             } catch (IOException ex) {
                                 writeLine("ERROR: An error occurred while trying to process your command. Please try again later.");
                             }

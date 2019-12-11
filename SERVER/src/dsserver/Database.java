@@ -4,6 +4,8 @@
  * and open the template in the editor.
  */
 package dsserver;
+import java.io.File;
+import java.nio.file.Files;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
@@ -26,6 +28,10 @@ public class Database {
         if (conn == null)
         {
          String url = "jdbc:sqlite:C:/sqlite/JTP.db";
+         if (!new File("C:\\sqlite").exists())
+         {
+             new File("C:\\sqlite").mkdirs();
+         }
             // create a connection to the database
          conn = DriverManager.getConnection(url);
         }
