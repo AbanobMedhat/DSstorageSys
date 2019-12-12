@@ -108,7 +108,12 @@ public class ServerWorker extends Thread {
 	{
 		String[] cmd = {};
 		if (input.contains(" ")) cmd = input.split(" ");
-		if ("/q".equals(input)) { writeLine("Received disconnect from user. Bye."); return false; }
+		if ("/q".equals(input)) { writeLine("Received disconnect from user. Bye."); try {
+                    client.close();
+                    } catch (IOException ex) {
+                        Logger.getLogger(ServerWorker.class.getName()).log(Level.SEVERE, null, ex);
+                    }
+return false; }
 		else if ("/l".equals(input))
 		{
 			if (session == null)
@@ -258,7 +263,7 @@ public class ServerWorker extends Thread {
 				execCommand("ls");
 			}
 			else{
-				writeLine("File does not exist or bad permissions.");
+				writeLine("File does not exist, target already exists or bad permissions.");
 			}
                     }
 		}

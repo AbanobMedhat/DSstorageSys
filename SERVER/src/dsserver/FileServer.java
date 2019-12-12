@@ -36,7 +36,6 @@ public class FileServer {
     {
         try {
             String canonicalPath = new File(DSServer.filesPath + session.getUsername() + "\\" + (filePath.startsWith("/")? filePath : session.getCwd() + "\\" + filePath)).getCanonicalPath().toString();
-           System.out.println(canonicalPath);
             if (canonicalPath.endsWith(DSServer.filesPath + session.getUsername()) || canonicalPath.startsWith(DSServer.filesPath + session.getUsername() + "\\"))
             {
                 return canonicalPath;
@@ -49,7 +48,7 @@ public class FileServer {
     public static boolean copy(String filename, String destination, UserSession session, DataOutputStream os)
     {
          try {
-                if (exists(filename, session) )
+                if (exists(filename, session) && !exists(destination, session))
                 {
                     String command = "";
                     filename = legalPath(filename, session);
@@ -111,8 +110,6 @@ public class FileServer {
                                                     
             Logger.getLogger(FileServer.class.getName()).log(Level.SEVERE, null, ex);
                                                 }
-                                                
-
     }
     public static boolean mkdir(String filePath, UserSession session)
     {
@@ -173,7 +170,6 @@ public class FileServer {
     		//directory is empty, then delete it
     		if(file.list().length==0){
     			
-                    System.out.println("Delete file 1");
     		   return file.delete();
     		   
     			
@@ -192,7 +188,6 @@ public class FileServer {
         		
         	   //check the directory again, if empty then delete it
         	   if(file.list().length==0){
-                    System.out.println("Delete file 2");
                        
            	     return file.delete();
         	   }
@@ -202,7 +197,6 @@ public class FileServer {
     	}
         else
         {
-                    System.out.println("Delete file 3 : " + file.getCanonicalPath());
             return file.delete();
         }
     }
@@ -222,15 +216,18 @@ public class FileServer {
     {
         try {
             String canonicalPath = legalPath(filePath, session);
+            if (!canonicalPath.equals(DSServer.filesPath + session.getUsername()) && !canonicalPath.equals(DSServer.filesPath + session.getUsername() + "\\"))
+            {
             File file = new File(canonicalPath);
             if (canonicalPath.length() > 0 && file.exists() && file.isDirectory())
             {
                 System.out.println("OK");
                 return delete(file);
             }
-            } catch (IOException ex) {
+            }
+              } catch (IOException ex) {
             Logger.getLogger(FileServer.class.getName()).log(Level.SEVERE, null, ex);
-        }
+    }
         return false;
     }
 }

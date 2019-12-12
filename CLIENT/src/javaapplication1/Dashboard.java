@@ -344,6 +344,19 @@ caret.setUpdatePolicy(ALWAYS_UPDATE);
                     if (command.startsWith("upload ") && targetUpload.length() == 0) return;
                             
                         
+                      if (command.startsWith("download ") && !checkStoreFolder())
+                      {
+                         GUI.msgBox("The supplied storage directory does not exist. No files were saved.", "ERROR", JOptionPane.ERROR_MESSAGE);
+                         return;
+                     }
+                      else if (command.startsWith("download "))
+                      {
+                          if (new File(getStore() + "\\" + filterCommand(command, "download")).exists())
+                          {
+                              GUI.msgBox("Target file to download already exists at " + getStore() + ". Please remove the file first and try again.", "ERROR", JOptionPane.ERROR_MESSAGE);
+                              return;
+                          }
+                      }
                     appendLine("$ " + command);
 			sh.writeLine(command);
 		}     
