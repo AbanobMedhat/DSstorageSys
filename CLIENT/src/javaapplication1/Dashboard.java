@@ -73,7 +73,12 @@ public class Dashboard extends javax.swing.JFrame {
         jLabel1.setText("Manual Commands:");
 
         jComboBox1.setEditable(true);
-        jComboBox1.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "cd", "pwd", "ls", "mkdir", "rmdir", "mv", "cp", "rnm", "download", "upload", " " }));
+        jComboBox1.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "cd", "pwd", "ls", "mkdir", "rm", "rmdir", "mv", "rnm", "cp", "download", "upload", " " }));
+        jComboBox1.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jComboBox1ActionPerformed(evt);
+            }
+        });
 
         jButton1.setText("Send");
         jButton1.addActionListener(new java.awt.event.ActionListener() {
@@ -423,6 +428,10 @@ return "";
     private void jButton4ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton4ActionPerformed
 jTextField1.setText(fileChooser(true));
     }//GEN-LAST:event_jButton4ActionPerformed
+
+    private void jComboBox1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jComboBox1ActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_jComboBox1ActionPerformed
 
 		/**
 	* @param args the command line arguments
