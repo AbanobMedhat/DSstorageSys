@@ -279,31 +279,68 @@ return false; }
                     }
 		}
                 
-                else if (cmd.length > 2 && (cmd[0].equals("mv") || cmd[0].equals("rnm")))
+                else if (cmd.length > 0 && (cmd[0].equals("mv") || cmd[0].equals("rnm")))
 		{
                     if (session != null)
                     {
+                        String suppliedCmd = cmd[0];
+                        if (filterCommand(input, suppliedCmd).contains(","))
+                        {
+                            String[] _cmd = filterCommand(input, suppliedCmd).split(",");
+                            if (_cmd.length > 1)
+                            {
+                            cmd[1] = _cmd[0];
+                            cmd[2] = _cmd[1];
+                            }
+                        }
+                        if (cmd.length > 2)
+                        {
 			if (FileServer.move(cmd[1], cmd[2], session)){
 				writeLine("OK");
 				execCommand("/ls");
 			}
 			else{
-				writeLine("File does not exist or bad permissions.");
+				writeLine("File does not exist or bad permissions. For files with spaces, please use file1,file2");
 			}
+                        }
+                        else
+                        {
+                            
+				writeLine("Valid syntax: mv/rnm file1,file2 | mv/rnm file1 file2");
+                        }
+                        
                     }
 		}
                 
-                else if (cmd.length > 2 && (cmd[0].equals("cp") || cmd[0].equals("copy")))
+                else if (cmd.length > 0 && (cmd[0].equals("cp") || cmd[0].equals("copy")))
 		{
                     if (session != null)
                     {
+                        String suppliedCmd = cmd[0];
+                        if (filterCommand(input, suppliedCmd).contains(","))
+                        {
+                            String[] _cmd = filterCommand(input, suppliedCmd).split(",");
+                             if (_cmd.length > 1)
+                            {
+                            cmd[1] = _cmd[0];
+                            cmd[2] = _cmd[1];
+                            }
+                        }
+                        if (cmd.length > 2)
+                        {
 			if (FileServer.copy(cmd[1], cmd[2], session, oStream)){
 				writeLine("OK");
 				execCommand("/ls");
 			}
 			else{
-				writeLine("File does not exist or bad permissions.");
+				writeLine("File does not exist or bad permissions. For files with spaces, please use: cp file1,file2");
 			}
+                        }
+                        else
+                        {
+                            
+				writeLine("Valid syntax: cp file1,file2 | cp file1 file2");
+                        }
                     }
 		}
                 
