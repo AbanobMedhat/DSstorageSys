@@ -198,7 +198,7 @@ return false; }
 		{
 			writeLine(session != null? session.getCwd(): "0");
 		}
-		else if ("ls".equals(input) || input.startsWith("ls"))
+		else if ("/ls".equals(input))
 		{
                     if (session != null)
                     {
@@ -211,6 +211,17 @@ return false; }
 			writeLine("#list/");
                     }
 		}
+		else if ("ls".equals(input) || input.startsWith("ls"))
+		{
+                    if (session != null)
+                    {
+			List<String> files = FileServer.ls("", session);
+			for (String file : files)
+			{
+				writeLine(FileServer.filterPath(file, session));
+			}
+                    }
+		}
 		else if (cmd.length > 1 && cmd[0].equals("cd"))
 		{if (session != null)
                     {
@@ -219,7 +230,7 @@ return false; }
 			session.changeCwd(target);
 			if (!_cwd.equals(session.getCwd())){
 				writeLine("#cwd:" + session.getCwd());
-				execCommand("ls");
+				execCommand("/ls");
 			}
 			else{
 				writeLine("Directory does not exist, bad permissions or already here.");
@@ -232,7 +243,7 @@ return false; }
 			String target = filterCommand(input, "mkdir");
 			if (FileServer.mkdir(target, session)){
 				writeLine("OK");
-				execCommand("ls");
+				execCommand("/ls");
 			}
 			else{
 				writeLine("Directory already exists or bad permissions.");
@@ -246,7 +257,7 @@ return false; }
 			String target = filterCommand(input, "rmdir");
 			if (FileServer.rmdir(target, session)){
 				writeLine("OK");
-				execCommand("ls");
+				execCommand("/ls");
 			}
 			else{
 				writeLine("Directory does not exist or bad permissions.");
@@ -260,7 +271,7 @@ return false; }
 			String target = filterCommand(input, "rm");
 			if (FileServer.rm(target, session)){
 				writeLine("OK");
-				execCommand("ls");
+				execCommand("/ls");
 			}
 			else{
 				writeLine("File does not exist, target already exists or bad permissions.");
@@ -274,7 +285,7 @@ return false; }
                     {
 			if (FileServer.move(cmd[1], cmd[2], session)){
 				writeLine("OK");
-				execCommand("ls");
+				execCommand("/ls");
 			}
 			else{
 				writeLine("File does not exist or bad permissions.");
@@ -288,7 +299,7 @@ return false; }
                     {
 			if (FileServer.copy(cmd[1], cmd[2], session, oStream)){
 				writeLine("OK");
-				execCommand("ls");
+				execCommand("/ls");
 			}
 			else{
 				writeLine("File does not exist or bad permissions.");
@@ -313,7 +324,7 @@ return false; }
 			}
 			else{
 				writeLine("Target file does not exist or bad permissions.");
-                                execCommand("ls");
+                                execCommand("/ls");
 			}
                     }
                 }

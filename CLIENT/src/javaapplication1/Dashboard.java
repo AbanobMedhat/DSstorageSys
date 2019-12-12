@@ -224,6 +224,7 @@ caret.setUpdatePolicy(ALWAYS_UPDATE);
 							_listUpdate = false;
 							if (model.getSize() > 0)
 							jList1.ensureIndexIsVisible(model.getSize() - 1);
+                                                        //appendLine("[INFO] Updated directory listing.");
 							continue;
 						}
 						
@@ -330,7 +331,7 @@ caret.setUpdatePolicy(ALWAYS_UPDATE);
                os.write(ioBuf);
             }
            sh.client.close();
-           sendCommand("ls");
+           sh.writeLine("/ls");
         }
     }
     String targetUpload = "";
@@ -362,7 +363,7 @@ caret.setUpdatePolicy(ALWAYS_UPDATE);
 		}     
                 private void refreshCwd()
                 {
-                    sendCommand("ls");
+                    sh.writeLine("/ls");
                 
                 }
                 
